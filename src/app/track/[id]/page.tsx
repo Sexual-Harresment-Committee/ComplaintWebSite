@@ -122,20 +122,29 @@ export default function ComplaintStatus() {
                         </Badge>
                     </div>
                 </CardHeader>
-                <CardContent className="grid gap-4 md:grid-cols-3 text-sm">
-                     <div>
-                         <span className="text-neutral-500 block">Category</span>
-                         <span className="font-medium">{complaint.category}</span>
+                <CardContent className="space-y-6">
+                     <div className="grid gap-4 md:grid-cols-3 text-sm">
+                         <div>
+                             <span className="text-neutral-500 block">Category</span>
+                             <span className="font-medium text-neutral-900 dark:text-neutral-100">{complaint.category}</span>
+                         </div>
+                         <div>
+                             <span className="text-neutral-500 block">Severity</span>
+                             <span className="font-medium text-neutral-900 dark:text-neutral-100">{complaint.severity}</span>
+                         </div>
+                         <div>
+                             <span className="text-neutral-500 block">Submitted On</span>
+                             <span className="font-medium text-neutral-900 dark:text-neutral-100">
+                                {complaint.createdAt ? format(complaint.createdAt.toDate(), "PPP") : "N/A"}
+                             </span>
+                         </div>
                      </div>
-                     <div>
-                         <span className="text-neutral-500 block">Severity</span>
-                         <span className="font-medium">{complaint.severity}</span>
-                     </div>
-                     <div>
-                         <span className="text-neutral-500 block">Submitted On</span>
-                         <span className="font-medium">
-                            {complaint.createdAt ? format(complaint.createdAt.toDate(), "PPP") : "N/A"}
-                         </span>
+
+                     <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800">
+                        <span className="text-neutral-500 block text-sm mb-2">Description</span>
+                        <div className="p-4 rounded-md bg-neutral-50 dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 text-sm text-neutral-700 dark:text-neutral-300 whitespace-pre-wrap leading-relaxed">
+                            {complaint.description}
+                        </div>
                      </div>
                 </CardContent>
             </Card>
