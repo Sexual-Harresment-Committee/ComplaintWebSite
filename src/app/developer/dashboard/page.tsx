@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { 
     Table, 
     TableBody, 
@@ -30,12 +31,12 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2, ShieldAlert, UserCog } from "lucide-react";
+import { Loader2, Plus, Trash2, ShieldAlert, UserCog, LogOut } from "lucide-react";
 import { UserProfile } from "@/types";
 import { initializeApp, getApps, FirebaseApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { getFirestore, doc, setDoc, serverTimestamp, getDocs, collection } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 
 // Helper to create a user using a TEMPORARY SECONDARY app instance
 // This prevents the main admin user from being logged out!
@@ -98,6 +99,7 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const router = useRouter();
 
     // New User State
     const [newUser, setNewUser] = useState({
@@ -125,6 +127,15 @@ export default function AdminDashboard() {
     useEffect(() => {
         fetchUsers();
     }, []);
+
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+            router.push('/admin/login');
+        } catch (error) {
+            toast.error("Logout failed");
+        }
+    };
 
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -192,88 +203,94 @@ export default function AdminDashboard() {
                 <div className="space-y-1">
                     <h1 className="text-3xl font-bold flex items-center gap-2">
                         <UserCog className="text-teal-500" />
-                        Admin Dashboard
+                        Developer Console
                     </h1>
-                    <p className="text-gray-400">Manage system access and authorized personnel.</p>
+                    <p className="text-gray-400">Manage system users, access roles, and technical configurations.</p>
                 </div>
                 
-                <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-                    <DialogTrigger asChild>
-                        <Button className="bg-teal-600 hover:bg-teal-700 text-white">
-                            <Plus className="mr-2 h-4 w-4" /> Add New User
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="bg-[#0A1116] border-white/10 text-white sm:max-w-[425px]">
-                        <DialogHeader>
-                            <DialogTitle>Add New User</DialogTitle>
-                            <DialogDescription className="text-gray-400">
-                                Create a new account for a committee member or action taker.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={handleCreateUser} className="space-y-4 pt-4">
-                            <div className="space-y-2">
-                                <Label>Full Name</Label>
-                                <Input 
-                                    value={newUser.name}
-                                    onChange={e => setNewUser({...newUser, name: e.target.value})}
-                                    className="bg-black/50 border-white/10"
-                                    required
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Email</Label>
-                                <Input 
-                                    type="email"
-                                    value={newUser.email}
-                                    onChange={e => setNewUser({...newUser, email: e.target.value})}
-                                    className="bg-black/50 border-white/10"
-                                    required
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Password</Label>
-                                <Input 
-                                    type="password"
-                                    value={newUser.password}
-                                    onChange={e => setNewUser({...newUser, password: e.target.value})}
-                                    className="bg-black/50 border-white/10"
-                                    minLength={6}
-                                    required
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Role</Label>
-                                <Select 
-                                    value={newUser.role} 
-                                    onValueChange={(val) => setNewUser({...newUser, role: val})}
-                                >
-                                    <SelectTrigger className="bg-black/50 border-white/10">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-neutral-900 border-white/10 text-white">
-                                        <SelectItem value="committee">Committee Member</SelectItem>
-                                        <SelectItem value="action_taker">Action Taker</SelectItem>
-                                        <SelectItem value="admin">Admin</SelectItem>
-                                        <SelectItem value="developer">Developer</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Department (Optional)</Label>
-                                <Input 
-                                    value={newUser.department}
-                                    onChange={e => setNewUser({...newUser, department: e.target.value})}
-                                    className="bg-black/50 border-white/10"
-                                />
-                            </div>
-                            <DialogFooter>
-                                <Button type="submit" disabled={isSubmitting} className="bg-teal-600 hover:bg-teal-500 text-white w-full">
-                                    {isSubmitting ? <Loader2 className="animate-spin" /> : "Create Account"}
-                                </Button>
-                            </DialogFooter>
-                        </form>
-                    </DialogContent>
-                </Dialog>
+                <div className="flex gap-4">
+                    <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+                        <DialogTrigger asChild>
+                            <Button className="bg-teal-600 hover:bg-teal-700 text-white">
+                                <Plus className="mr-2 h-4 w-4" /> Add New User
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="bg-[#0A1116] border-white/10 text-white sm:max-w-[425px]">
+                            <DialogHeader>
+                                <DialogTitle>Add New User</DialogTitle>
+                                <DialogDescription className="text-gray-400">
+                                    Create a new account for a committee member or action taker.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={handleCreateUser} className="space-y-4 pt-4">
+                                <div className="space-y-2">
+                                    <Label>Full Name</Label>
+                                    <Input 
+                                        value={newUser.name}
+                                        onChange={e => setNewUser({...newUser, name: e.target.value})}
+                                        className="bg-black/50 border-white/10"
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Email</Label>
+                                    <Input 
+                                        type="email"
+                                        value={newUser.email}
+                                        onChange={e => setNewUser({...newUser, email: e.target.value})}
+                                        className="bg-black/50 border-white/10"
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Password</Label>
+                                    <Input 
+                                        type="password"
+                                        value={newUser.password}
+                                        onChange={e => setNewUser({...newUser, password: e.target.value})}
+                                        className="bg-black/50 border-white/10"
+                                        minLength={6}
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Role</Label>
+                                    <Select 
+                                        value={newUser.role} 
+                                        onValueChange={(val) => setNewUser({...newUser, role: val})}
+                                    >
+                                        <SelectTrigger className="bg-black/50 border-white/10">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-neutral-900 border-white/10 text-white">
+                                            <SelectItem value="committee">Committee Member</SelectItem>
+                                            <SelectItem value="action_taker">Action Taker</SelectItem>
+                                            <SelectItem value="admin">Admin</SelectItem>
+                                            <SelectItem value="developer">Developer</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Department (Optional)</Label>
+                                    <Input 
+                                        value={newUser.department}
+                                        onChange={e => setNewUser({...newUser, department: e.target.value})}
+                                        className="bg-black/50 border-white/10"
+                                    />
+                                </div>
+                                <DialogFooter>
+                                    <Button type="submit" disabled={isSubmitting} className="bg-teal-600 hover:bg-teal-500 text-white w-full">
+                                        {isSubmitting ? <Loader2 className="animate-spin" /> : "Create Account"}
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+
+                    <Button variant="outline" className="border-red-500/20 text-red-400 hover:bg-red-500/10 hover:text-red-300" onClick={handleLogout}>
+                        <LogOut className="mr-2 h-4 w-4" /> Logout
+                    </Button>
+                </div>
             </div>
 
             {/* Users Table */}

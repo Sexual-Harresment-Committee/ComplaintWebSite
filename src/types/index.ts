@@ -1,6 +1,6 @@
 import { Timestamp } from "firebase/firestore";
 
-export type ComplaintStatus = 'Submitted' | 'Under Review' | 'Investigation' | 'Resolved' | 'Dismissed';
+export type ComplaintStatus = 'Submitted' | 'Viewed' | 'Under Review' | 'Working' | 'Investigation' | 'Resolved' | 'Dismissed';
 export type ComplaintCategory = 'Harassment' | 'Bullying' | 'Discrimination' | 'Other';
 export type ComplaintSeverity = 'Low' | 'Medium' | 'High' | 'Critical';
 export type UserRole = 'admin' | 'action_taker' | 'committee' | 'developer';
