@@ -6,10 +6,11 @@ import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 
 export default function DashboardPage() {
-  const { role, loading } = useAuth();
+  const { userData, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
+    const role = userData?.role;
     if (!loading && role) {
       if (role === 'action_taker') router.replace('/dashboard/action-taker');
       else if (role === 'committee') router.replace('/dashboard/committee');
@@ -19,7 +20,7 @@ export default function DashboardPage() {
         // router.replace('/');
       }
     }
-  }, [role, loading, router]);
+  }, [userData, loading, router]);
 
   return (
     <div className="flex h-full items-center justify-center">
