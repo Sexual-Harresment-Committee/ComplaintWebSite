@@ -36,7 +36,7 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 flex flex-col md:flex-row">
       {/* Sidebar / Topbar */}
-      <aside className="w-full md:w-64 bg-white dark:bg-neutral-950 border-b md:border-b-0 md:border-r border-neutral-200 dark:border-neutral-800 p-4 flex flex-col justify-between">
+      <aside className={`w-full ${userData?.role === 'action_taker' ? 'md:w-52' : 'md:w-64'} bg-white dark:bg-neutral-950 border-b md:border-b-0 md:border-r border-neutral-200 dark:border-neutral-800 p-4 flex flex-col justify-between transition-all duration-300`}>
         <div>
            <div className="mb-8 flex items-center space-x-2 px-2">
              <ShieldAlert className="w-6 h-6" />
