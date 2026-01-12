@@ -108,7 +108,7 @@ export default function ActionTakerDashboard() {
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-8 text-white min-h-screen">
+    <div className="p-8 max-w-7xl mx-auto space-y-8 text-white min-h-screen">
       {/* Header */}
       <div className="flex bg-black/40 border border-white/10 p-6 rounded-xl backdrop-blur-sm justify-between items-center">
         <div className="space-y-1">
