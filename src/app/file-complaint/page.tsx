@@ -51,6 +51,7 @@ function ComplaintContent() {
 
     // Form State
     const [category, setCategory] = useState<string>("");
+    const [otherCategoryVal, setOtherCategoryVal] = useState<string>("");
     const [urgency, setUrgency] = useState<string>("Low");
     
     // Separate state for Date object
@@ -90,6 +91,11 @@ function ComplaintContent() {
             return;
         }
 
+        if (category === "Other" && !otherCategoryVal.trim()) {
+            toast.error("Please specify the 'Other' category detail.");
+            return;
+        }
+
         if (formData.description.length < 20) {
              toast.error("Description must be at least 20 characters.");
              return;
@@ -116,7 +122,7 @@ function ComplaintContent() {
 
             const structuredData = {
                 complaintId: complaintId,
-                category: category as any,
+                category: (category === "Other" && otherCategoryVal) ? `Other: ${otherCategoryVal}` : category as any,
                 severity: urgency as any,
                 description: formData.description,
                 incidentDate: date ? date.toISOString() : new Date().toISOString(), 
@@ -304,6 +310,19 @@ function ComplaintContent() {
                                             </button>
                                         ))}
                                     </div>
+                                    </div>
+                                    
+                                    {category === "Other" && (
+                                        <div className="mt-3 animate-fade-in">
+                                            <Input 
+                                                label="Please specify"
+                                                value={otherCategoryVal}
+                                                onChange={(e) => setOtherCategoryVal(e.target.value)}
+                                                placeholder="What represents this incident?"
+                                                className="bg-black/30"
+                                            />
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Urgency Selector */}
