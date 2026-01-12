@@ -34,7 +34,15 @@ export default function DashboardLayout({
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-[#0A1116] flex flex-col md:flex-row relative overflow-hidden">
+       {/* Ambient Backgorund Effects matched from Landing Page */}
+       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-teal-500/10 rounded-full blur-[120px]" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px]" />
+       </div>
+       
+       {/* Content Wrapper to ensure z-index above background */}
+       <div className="flex-1 flex flex-col md:flex-row z-10 w-full">
       {/* Sidebar / Topbar */}
       {userData?.role !== 'action_taker' && (
       <aside className={`w-full ${userData?.role === 'action_taker' ? 'md:w-52' : 'md:w-64'} bg-white dark:bg-neutral-950 border-b md:border-b-0 md:border-r border-neutral-200 dark:border-neutral-800 p-4 flex flex-col justify-between transition-all duration-300`}>
@@ -81,6 +89,7 @@ export default function DashboardLayout({
       <main className="flex-1 p-6 overflow-auto">
          {children}
       </main>
+      </div>
     </div>
   );
 }
