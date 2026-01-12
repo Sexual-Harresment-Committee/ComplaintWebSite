@@ -325,6 +325,28 @@ export default function AdminDashboard() {
                             </div>
                         </div>
 
+                        {/* Evidence Section */}
+                        {selectedComplaint?.attachmentUrl && (
+                            <div className="space-y-2">
+                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Attached Evidence</label>
+                                <div className="relative rounded-lg overflow-hidden border border-white/10 bg-black/40 group">
+                                    <img 
+                                        src={selectedComplaint.attachmentUrl} 
+                                        alt="Evidence" 
+                                        className="w-full object-contain max-h-[300px] bg-neutral-900/50" 
+                                    />
+                                    <a 
+                                        href={selectedComplaint.attachmentUrl} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded hover:bg-teal-600 transition-colors backdrop-blur-sm opacity-0 group-hover:opacity-100"
+                                    >
+                                        View Full Size
+                                    </a>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Assignment Section */}
                         <div className="bg-white/5 p-4 rounded-lg border border-white/5 space-y-4">
                             <div className="flex items-center justify-between">

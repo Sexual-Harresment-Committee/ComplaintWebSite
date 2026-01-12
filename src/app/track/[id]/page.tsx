@@ -146,6 +146,28 @@ export default function ComplaintStatus() {
                             {complaint.description}
                         </div>
                      </div>
+
+                     {/* Evidence Section */}
+                     {complaint.attachmentUrl && (
+                         <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800">
+                            <span className="text-neutral-500 block text-sm mb-2">Evidence</span>
+                            <div className="rounded-md border border-neutral-100 dark:border-neutral-800 overflow-hidden relative group max-w-sm">
+                                <img 
+                                    src={complaint.attachmentUrl} 
+                                    alt="Evidence" 
+                                    className="w-full h-auto object-cover bg-neutral-50 dark:bg-neutral-900" 
+                                />
+                                <a 
+                                    href={complaint.attachmentUrl} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-medium backdrop-blur-sm"
+                                >
+                                    View Full Size
+                                </a>
+                            </div>
+                         </div>
+                     )}
                 </CardContent>
             </Card>
 
