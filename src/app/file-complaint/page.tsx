@@ -310,7 +310,7 @@ function ComplaintContent() {
                                             </button>
                                         ))}
                                     </div>
-                                    </div>
+
                                     
                                     {category === "Other" && (
                                         <div className="mt-3 animate-fade-in">
