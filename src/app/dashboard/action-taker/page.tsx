@@ -1,16 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
 import { Complaint, UserProfile } from "@/types";
-import { DataTable } from "./data-table";
-import { columns } from "./columns";
 import { useAuth } from "@/context/AuthContext";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ComplaintEditor } from "./complaint-editor";
 import { Button } from "@/components/ui/button";
-import { ShieldAlert, FileDown, FileText, FileSpreadsheet, Calendar as CalendarIcon, X, LogOut } from "lucide-react";
+import { ShieldAlert, FileDown, FileText, FileSpreadsheet, Calendar as CalendarIcon, X, LogOut, Loader2, UserCheck } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -19,6 +16,15 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { exportToCSV, exportToPDF, exportToXLSX } from "@/lib/export-utils";
 import { DateRange } from "react-day-picker";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 export default function ActionTakerDashboard() {
   const { user, userData } = useAuth();
@@ -43,11 +49,17 @@ export default function ActionTakerDashboard() {
     const q = query(
       collection(db, "complaints"),
       where("assignedTo", "==", user.uid)
-      // orderBy("createdAt", "desc") // Temporarily removed to bypass index creation wait time
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ ...doc.data(), complaintId: doc.id } as Complaint));
+      // Sort in client to avoid index issues with compound queries if needed, or index is ready
+      data.sort((a, b) => {
+          if (a.createdAt && b.createdAt) {
+              return b.createdAt.seconds - a.createdAt.seconds;
+          }
+          return 0;
+      });
       setComplaints(data);
       setLoading(false);
     }, (error) => {
@@ -87,7 +99,6 @@ export default function ActionTakerDashboard() {
   const handleExport = (type: 'csv' | 'xlsx' | 'pdf') => {
     try {
       toast.info(`Generating ${type.toUpperCase()}...`);
-      // Pass dummy list since we only filter by user
       const dummyTakers = user ? [{ uid: user.uid, name: (userData as any)?.name || 'Me', email: user.email || '', role: 'action_taker', department: 'General' } as UserProfile] : [];
 
       if (type === 'csv') exportToCSV(filteredComplaints, dummyTakers);
@@ -107,8 +118,21 @@ export default function ActionTakerDashboard() {
     setDateRange(undefined);
   };
 
+  const getStatusColor = (status: string) => {
+      switch (status) {
+          case 'Submitted': return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
+          case 'Viewed': return 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20';
+          case 'Under Review': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+          case 'Working': return 'bg-orange-500/10 text-orange-500 border-orange-500/20';
+          case 'Investigation': return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
+          case 'Resolved': return 'bg-green-500/10 text-green-500 border-green-500/20';
+          case 'Dismissed': return 'bg-red-500/10 text-red-500 border-red-500/20';
+          default: return 'bg-gray-500/10 text-gray-500 border-gray-500/20';
+      }
+  };
+
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8 text-white min-h-screen">
+    <div className="p-8 max-w-7xl mx-auto space-y-8 text-white">
       {/* Header */}
       <div className="flex bg-black/40 border border-white/10 p-6 rounded-xl backdrop-blur-sm justify-between items-center">
         <div className="space-y-1">
@@ -160,7 +184,7 @@ export default function ActionTakerDashboard() {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Filters (Retained from Action Taker logic) */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white/5 p-4 rounded-xl border border-white/5">
         <div className="space-y-2">
           <label className="text-xs font-semibold text-gray-400 uppercase">Status</label>
@@ -249,22 +273,87 @@ export default function ActionTakerDashboard() {
         </div>
       </div>
 
-      <div className="border border-white/10 rounded-xl overflow-hidden bg-black/20 backdrop-blur-md">
-        <DataTable
-          columns={columns}
-          data={filteredComplaints}
-          onRowClick={(row: Complaint) => setSelectedComplaint(row)}
-        />
+      {/* Main Content - Manual Table to match Admin */}
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+             <h2 className="text-xl font-semibold text-gray-200">My Tasks</h2>
+             {/* Admin has refresh here, we can keep or leave. Fetch is real-time via snap, so maybe not strictly needed, but consistent. */}
+        </div>
+
+        <div className="border border-white/10 rounded-xl overflow-hidden bg-black/20 backdrop-blur-md">
+            <Table>
+                <TableHeader className="bg-white/5">
+                    <TableRow className="border-white/5 hover:bg-transparent">
+                        <TableHead className="text-gray-300">ID</TableHead>
+                        <TableHead className="text-gray-300">Category</TableHead>
+                        <TableHead className="text-gray-300">Severity</TableHead>
+                        <TableHead className="text-gray-300">Status</TableHead>
+                        <TableHead className="text-gray-300">Date</TableHead>
+                        <TableHead className="text-right text-gray-300">Actions</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {loading ? (
+                        <TableRow>
+                            <TableCell colSpan={6} className="h-48 text-center text-gray-400">
+                                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+                                Loading tasks...
+                            </TableCell>
+                        </TableRow>
+                    ) : filteredComplaints.length === 0 ? (
+                        <TableRow>
+                            <TableCell colSpan={6} className="h-48 text-center text-gray-500">
+                                No tasks found matching your filters.
+                            </TableCell>
+                        </TableRow>
+                    ) : (
+                        filteredComplaints.map((complaint) => (
+                            <TableRow key={complaint.complaintId} className="border-white/5 hover:bg-white/5 transition-colors">
+                                <TableCell className="font-mono text-teal-400">{complaint.complaintId}</TableCell>
+                                <TableCell className="text-white">{complaint.category}</TableCell>
+                                <TableCell>
+                                    <span className={`px-2 py-0.5 rounded text-xs font-medium border ${
+                                        complaint.severity === 'Critical' ? 'border-red-500 text-red-400 bg-red-500/10' :
+                                        complaint.severity === 'High' ? 'border-orange-500 text-orange-400 bg-orange-500/10' :
+                                        'border-gray-500 text-gray-400'
+                                    }`}>
+                                        {complaint.severity}
+                                    </span>
+                                </TableCell>
+                                <TableCell>
+                                    <Badge variant="outline" className={getStatusColor(complaint.status)}>
+                                        {complaint.status}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell className="text-gray-400 text-sm">
+                                    {complaint.createdAt ? new Date(complaint.createdAt.seconds * 1000).toLocaleDateString() : '-'}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    <Button 
+                                        size="sm" 
+                                        variant="outline"
+                                        className="border-primary/20 hover:bg-primary/10 hover:text-primary text-gray-300"
+                                        onClick={() => setSelectedComplaint(complaint)}
+                                    >
+                                        Manage
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        ))
+                    )}
+                </TableBody>
+            </Table>
+        </div>
       </div>
 
-      <Sheet open={!!selectedComplaint} onOpenChange={(open) => !open && setSelectedComplaint(null)}>
-        <SheetContent className="bg-[#0A1116] border-white/10 text-white sm:max-w-xl">
-          <SheetHeader>
-            <SheetTitle className="text-2xl font-mono text-teal-400">{selectedComplaint?.complaintId}</SheetTitle>
-            <SheetDescription className="text-gray-400">
+      <Dialog open={!!selectedComplaint} onOpenChange={(open) => !open && setSelectedComplaint(null)}>
+        <DialogContent className="bg-[#0A1116] border-white/10 text-white sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-mono text-teal-400">{selectedComplaint?.complaintId}</DialogTitle>
+            <DialogDescription className="text-gray-400">
               Manage investigation details and updates.
-            </SheetDescription>
-          </SheetHeader>
+            </DialogDescription>
+          </DialogHeader>
 
           <div className="py-6 space-y-6">
             <div>
@@ -281,8 +370,8 @@ export default function ActionTakerDashboard() {
               />
             )}
           </div>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
