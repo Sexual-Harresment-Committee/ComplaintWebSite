@@ -432,15 +432,32 @@ function ComplaintContent() {
                                     date={date}
                                     setDate={setDate}
                                 />
-                                <Input
-                                    label="Location"
-                                    name="location"
-                                    value={formData.location}
-                                    onChange={handleInputChange}
-                                    placeholder="e.g. Campus Library, Dorms..."
-                                    icon={<MapPin size={18} />}
-                                    required
-                                />
+                                
+                                <div className="space-y-2">
+                                    <Label className="text-gray-300 font-medium">Location</Label>
+                                    <div className="relative">
+                                        <MapPin size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                                        <select
+                                            name="location"
+                                            value={formData.location}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                                            className="w-full bg-black/20 border border-white/10 text-white rounded-md p-3 pl-10 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/20 appearance-none transition-colors"
+                                            required
+                                        >
+                                            <option value="" disabled className="text-gray-500 bg-neutral-900">Select Campus Location</option>
+                                            <option value="SAL Institute of Technology & Engineering and Research" className="bg-neutral-900">SAL Institute of Technology & Engineering and Research</option>
+                                            <option value="SAL College of Engineering" className="bg-neutral-900">SAL College of Engineering</option>
+                                            <option value="SAL Engineering and Technical Institute" className="bg-neutral-900">SAL Engineering and Technical Institute</option>
+                                            <option value="SAL Institute of Diploma Studies" className="bg-neutral-900">SAL Institute of Diploma Studies</option>
+                                            <option value="SAL Institute of Management" className="bg-neutral-900">SAL Institute of Management</option>
+                                            <option value="SAL Institute of Pharmacy" className="bg-neutral-900">SAL Institute of Pharmacy</option>
+                                            <option value="SAL College of Pharmacy" className="bg-neutral-900">SAL College of Pharmacy</option>
+                                            <option value="SAL School of Architecture" className="bg-neutral-900">SAL School of Architecture</option>
+                                            <option value="SAL School of Interior Design" className="bg-neutral-900">SAL School of Interior Design</option>
+                                            <option value="Other" className="bg-neutral-900">Other (Please specify in description)</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
