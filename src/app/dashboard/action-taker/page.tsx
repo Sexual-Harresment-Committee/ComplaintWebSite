@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
+import { supabase } from "@/lib/supabase";
 import { Complaint, UserProfile } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { ComplaintEditor } from "./complaint-editor";
@@ -364,23 +365,62 @@ export default function ActionTakerDashboard() {
             </div>
 
             {/* Evidence Section */}
-            {selectedComplaint?.attachmentUrl && (
+            {(selectedComplaint?.storagePath || selectedComplaint?.attachmentUrl) && (
                 <div className="space-y-2">
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Attached Evidence</label>
                     <div className="relative rounded-lg overflow-hidden border border-white/10 bg-black/40 group">
-                        <img 
-                            src={selectedComplaint.attachmentUrl} 
-                            alt="Evidence" 
-                            className="w-full object-contain max-h-[300px] bg-neutral-900/50" 
-                        />
-                        <a 
-                            href={selectedComplaint.attachmentUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded hover:bg-teal-600 transition-colors backdrop-blur-sm opacity-0 group-hover:opacity-100"
-                        >
-                            View Full Size
-                        </a>
+                        {(() => {
+                            // Resolve URL
+                            const fileUrl = selectedComplaint.storagePath 
+                                ? supabase.storage.from('Proof').getPublicUrl(selectedComplaint.storagePath).data.publicUrl
+                                : selectedComplaint.attachmentUrl;
+                            
+                            if (!fileUrl) return null;
+
+                            // Determine Type
+                            const ext = fileUrl.split('.').pop()?.toLowerCase().split('?')[0]; // split query just in case
+                            const isVideo = ['mp4', 'webm', 'mov'].includes(ext || '');
+                            const isAudio = ['mp3', 'wav', 'm4a'].includes(ext || '');
+
+                            if (isVideo) {
+                                return (
+                                    <video 
+                                        controls 
+                                        className="w-full max-h-[400px] bg-black"
+                                        src={fileUrl}
+                                    >
+                                        Your browser does not support the video tag.
+                                    </video>
+                                );
+                            } else if (isAudio) {
+                                return (
+                                    <div className="p-4 flex items-center justify-center bg-white/5">
+                                        <audio controls className="w-full" src={fileUrl}>
+                                            Your browser does not support the audio element.
+                                        </audio>
+                                    </div>
+                                );
+                            } else {
+                                // Default to Image
+                                return (
+                                    <>
+                                        <img 
+                                            src={fileUrl} 
+                                            alt="Evidence" 
+                                            className="w-full object-contain max-h-[400px] bg-neutral-900/50" 
+                                        />
+                                        <a 
+                                            href={fileUrl} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded hover:bg-teal-600 transition-colors backdrop-blur-sm opacity-0 group-hover:opacity-100"
+                                        >
+                                            View Full Size
+                                        </a>
+                                    </>
+                                );
+                            }
+                        })()}
                     </div>
                 </div>
             )}
