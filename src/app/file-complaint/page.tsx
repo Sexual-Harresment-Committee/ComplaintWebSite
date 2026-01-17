@@ -150,6 +150,12 @@ function ComplaintContent() {
                      return;
                  }
 
+                 if (file.size > 5 * 1024 * 1024) {
+                     toast.error("File is too large. Maximum size is 5MB.");
+                     setIsSubmitting(false);
+                     return;
+                 }
+
                 try {
                     // RLS Policy Check: Must be in 'public' folder
                     // RLS Policy Check: Bucket is 'Proof'
@@ -507,10 +513,16 @@ function ComplaintContent() {
                             </h3>
 
                             <FileUpload
-                                label="Upload Evidence (Image / Video / Audio)"
+                                label="Upload Evidence (Image / Video / Audio) - Max 5MB"
                                 onFilesSelected={(files) => {
                                     if (files && files.length > 0) {
-                                        setFile(files[0]);
+                                        const selectedFile = files[0];
+                                        // 5MB Limit Check
+                                        if (selectedFile.size > 5 * 1024 * 1024) {
+                                            toast.error("File is too large. Maximum size is 5MB.");
+                                            return;
+                                        }
+                                        setFile(selectedFile);
                                         toast.success("File attached successfully.");
                                     }
                                 }}
