@@ -59,7 +59,7 @@ function CustomTextarea({ label, className, value, ...props }: any) {
             <Textarea 
                 ref={textareaRef}
                 value={value}
-                className={`bg-black/20 border-white/10 text-white placeholder:text-gray-600 focus:border-brand-teal/50 focus:ring-brand-teal/20 min-h-[150px] overflow-hidden resize-none transition-all duration-200 ${className}`}
+                className={`bg-black/20 border-white/10 text-white placeholder:text-gray-600 focus:border-brand-teal/50 focus:ring-brand-teal/20 min-h-[85px] overflow-hidden resize-none transition-all duration-200 ${className}`}
                 onChange={(e: any) => {
                     adjustHeight();
                     props.onChange?.(e);
@@ -554,7 +554,7 @@ function ComplaintContent() {
                                 onChange={handleInputChange}
                                 placeholder="Please describe the incident in detail. Include specific actions, quotes, and sequence of events."
                                 required
-                                rows={6}
+                                rows={3}
                             />
                         </div>
 
