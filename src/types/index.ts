@@ -26,8 +26,10 @@ export interface Complaint {
   createdAt: Timestamp;
   updatedAt: Timestamp;
   assignedTo?: string; // UID of action taker
-  attachmentUrl?: string; // URL to uploaded evidence (Legacy/Public)
-  storagePath?: string; // Supabase Storage path (Private/Official)
+  attachmentUrl?: string; // Legacy: Single URL
+  storagePath?: string; // Legacy: Single Path
+  attachmentUrls?: string[]; // New: Multiple URLs
+  storagePaths?: string[]; // New: Multiple Paths
   
   // Incident Details
   incidentDate?: string; // ISO String

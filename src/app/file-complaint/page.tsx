@@ -108,7 +108,7 @@ function ComplaintContent() {
         { level: "Critical", color: "bg-red-500/20 text-red-400 border-red-500/30" }
     ];
 
-    const [file, setFile] = useState<File | null>(null);
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -169,52 +169,53 @@ function ComplaintContent() {
                 passcodeHash = await hashPasscode(formData.passcode);
             }
 
-            // Upload File if selected
-            // Upload File logic removed as per request (feature postponed)
-            let storagePath = null;
-            let fullAttachmentUrl = null;
+            // Upload Files if selected
+            const uploadedUrls: string[] = [];
+            const uploadedPaths: string[] = [];
 
-            // Upload File if selected
-            if (file) {
+            if (selectedFiles.length > 0) {
                  // RLS Policy Check: Allow Images, Videos, Audio
                  const allowedExtensions = ['jpg', 'jpeg', 'png', 'mp4', 'mov', 'webm', 'mp3', 'wav', 'm4a'];
-                 const fileExtension = file.name.split('.').pop()?.toLowerCase();
                  
-                 if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
-                     toast.error("Format not supported. Allowed: JPG, PNG, MP4, MOV, WEBM, MP3, WAV");
+                 // Size Check
+                 const totalSize = selectedFiles.reduce((acc, f) => acc + f.size, 0);
+                 if (totalSize > 10 * 1024 * 1024) { // 10MB
+                     toast.error("Total file size exceeds 10MB limit.");
                      setIsSubmitting(false);
                      return;
                  }
 
-                 if (file.size > 5 * 1024 * 1024) {
-                     toast.error("File is too large. Maximum size is 5MB.");
-                     setIsSubmitting(false);
-                     return;
+                 for (const fileItem of selectedFiles) {
+                     const fileExtension = fileItem.name.split('.').pop()?.toLowerCase();
+                     
+                     if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
+                         toast.error(`Format not supported for ${fileItem.name}.`);
+                         setIsSubmitting(false);
+                         return;
+                     }
+
+                    try {
+                        const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 5)}_${fileItem.name.replace(/\s+/g, '_')}`;
+                        const filePath = `public/${complaintId}/${fileName}`;
+                        
+                        const { data, error } = await supabase.storage.from('Proof').upload(filePath, fileItem);
+
+                        if (error) throw error;
+
+                        if (data) {
+                            uploadedPaths.push(data.path);
+                             // Get Public URL
+                            const { data: publicUrlData } = supabase.storage.from('Proof').getPublicUrl(filePath);
+                            uploadedUrls.push(publicUrlData.publicUrl);
+                        }
+
+                    } catch (uploadError: any) {
+                        console.error(uploadError);
+                        toast.error(`Upload failed for ${fileItem.name}: ${uploadError.message}`);
+                        setIsSubmitting(false);
+                        return; 
+                    }
                  }
-
-                try {
-                    // RLS Policy Check: Must be in 'public' folder
-                    // RLS Policy Check: Bucket is 'Proof'
-                    const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`; // Sanitize spaces
-                    const filePath = `public/${complaintId}/${fileName}`;
-                    
-                    const { data, error } = await supabase.storage.from('Proof').upload(filePath, file);
-
-                    if (error) {
-                        console.error("Supabase upload error details:", error);
-                        throw new Error(`File upload failed: ${error.message}`);
-                    }
-
-                    if (data) {
-                        storagePath = data.path;
-                    }
-
-                } catch (uploadError: any) {
-                    console.error(uploadError);
-                    toast.error(`Upload refused by server: ${uploadError.message || "Policy violation"}`);
-                    setIsSubmitting(false);
-                    return; 
-                }
             }
 
             const structuredData = {
@@ -226,8 +227,10 @@ function ComplaintContent() {
                 location: `${campus} | ${specificLocation}`, 
                 perpetrator: formData.perpetrator, 
                 witnesses: formData.witnesses, 
-                attachmentUrl: null, // Defer to storagePath
-                storagePath: storagePath,
+                attachmentUrl: uploadedUrls.length > 0 ? uploadedUrls[0] : null, // Legacy
+                storagePath: uploadedPaths.length > 0 ? uploadedPaths[0] : null, // Legacy
+                attachmentUrls: uploadedUrls, // New
+                storagePaths: uploadedPaths, // New
                 passcode: passcodeHash,
                 status: 'Submitted',
                 createdAt: serverTimestamp(),
@@ -597,19 +600,9 @@ function ComplaintContent() {
                             </div>
 
                             <FileUpload
-                                label="Upload Evidence (Image / Video / Audio) - Max 5MB"
-                                onFilesSelected={(files) => {
-                                    if (files && files.length > 0) {
-                                        const selectedFile = files[0];
-                                        // 5MB Limit Check
-                                        if (selectedFile.size > 5 * 1024 * 1024) {
-                                            toast.error("File is too large. Maximum size is 5MB.");
-                                            return;
-                                        }
-                                        setFile(selectedFile);
-                                        toast.success("File attached successfully.");
-                                    }
-                                }}
+                                label="Upload Evidence (Image / Video / Audio) - Max 10MB Total"
+                                multiple={true}
+                                onFilesSelected={handleFileSelect}
                             />
                         </div>
 
