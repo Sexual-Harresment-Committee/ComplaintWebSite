@@ -62,10 +62,7 @@ export default function DashboardLayout({
                 <NavItem href="/dashboard/committee" label="Committee View" active />
              )}
               {userData?.role === 'admin' && (
-                <>
-                <NavItem href="/dashboard/action-taker" label="Action Taker View" />
-                <NavItem href="/dashboard/committee" label="Committee View" />
-                </>
+                <NavItem href="/dashboard/admin" label="Admin Dashboard" active />
              )}
            </nav>
         </div>
