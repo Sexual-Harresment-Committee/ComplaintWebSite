@@ -25,6 +25,7 @@ import {
 import { generateComplaintId, hashPasscode } from "@/lib/utils";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import Link from "next/link";
 import { Label } from "@/components/ui/label";
@@ -134,11 +135,33 @@ function ComplaintContent() {
 
             // Upload File if selected
             // Upload File logic removed as per request (feature postponed)
-            /* 
+            let storagePath = null;
+            let fullAttachmentUrl = null;
+
+            // Upload File if selected
             if (file) {
-                 // Logic removed for now
-            } 
-            */
+                try {
+                    const filePath = `${complaintId}/${Date.now()}_${file.name}`;
+                    const { data, error } = await supabase.storage.from('proof').upload(filePath, file);
+
+                    if (error) {
+                        console.error("Supabase upload error:", error);
+                        throw new Error("File upload failed");
+                    }
+
+                    if (data) {
+                        storagePath = data.path;
+                        // Optional: Store public URL if bucket is public, but for evidence we likely want private access
+                        // fullAttachmentUrl = supabase.storage.from('proof').getPublicUrl(data.path).data.publicUrl;
+                    }
+
+                } catch (uploadError) {
+                    console.error(uploadError);
+                    toast.error("Failed to upload evidence. Complaint submission aborted to preserve data integrity.");
+                    setIsSubmitting(false);
+                    return; 
+                }
+            }
 
             const structuredData = {
                 complaintId: complaintId,
@@ -149,7 +172,8 @@ function ComplaintContent() {
                 location: formData.location, 
                 perpetrator: formData.perpetrator, 
                 witnesses: formData.witnesses, 
-                attachmentUrl: null, // Explicitly null for now
+                attachmentUrl: null, // Defer to storagePath
+                storagePath: storagePath,
                 passcode: passcodeHash,
                 status: 'Submitted',
                 createdAt: serverTimestamp(),
@@ -471,12 +495,11 @@ function ComplaintContent() {
                             </h3>
 
                             <FileUpload
-                                label="Upload Evidence (Image)"
+                                label="Upload Evidence (Image/Video)"
                                 onFilesSelected={(files) => {
                                     if (files && files.length > 0) {
-                                        toast("File upload is currently disabled.", {
-                                            description: "We are only recording text data for this MVP."
-                                        });
+                                        setFile(files[0]);
+                                        toast.success("File attached successfully.");
                                     }
                                 }}
                             />
