@@ -509,8 +509,15 @@ function ComplaintContent() {
                         <div className="space-y-6">
                             <h3 className="text-lg font-semibold text-white flex items-center gap-2 border-b border-white/10 pb-4">
                                 <span className="w-8 h-8 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-500 text-sm">06</span>
-                                Evidence <span className="text-gray-500 text-sm font-normal ml-auto">(Optional - Images only)</span>
+                                Evidence <span className="text-gray-500 text-sm font-normal ml-auto">(Optional)</span>
                             </h3>
+
+                            <div className="bg-yellow-500/5 border border-yellow-500/10 rounded-lg p-3 flex gap-3 mb-4">
+                                <AlertTriangle className="w-5 h-5 text-yellow-500 shrink-0" />
+                                <p className="text-xs text-yellow-200/80 leading-relaxed">
+                                    <span className="font-semibold text-yellow-500">Immutable Evidence:</span> Once uploaded, no one can delete or edit your proof. Even you cannot view or edit the evidence after submission to ensure chain of custody.
+                                </p>
+                            </div>
 
                             <FileUpload
                                 label="Upload Evidence (Image / Video / Audio) - Max 5MB"
