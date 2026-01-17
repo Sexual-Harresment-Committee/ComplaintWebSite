@@ -449,6 +449,7 @@ function ComplaintContent() {
                                         label="Date & Time"
                                         date={date}
                                         setDate={setDate}
+                                        className="h-auto min-h-[3rem] py-3"
                                     />
                                     
                                      {/* Campus Selector */}
