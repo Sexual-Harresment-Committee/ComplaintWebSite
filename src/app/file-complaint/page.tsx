@@ -211,6 +211,16 @@ function ComplaintContent() {
         }
     };
 
+    const isFormValid = Boolean(
+        category &&
+        (category !== "Other" || otherCategoryVal.trim()) &&
+        date &&
+        formData.location.trim() &&
+        formData.perpetrator.trim() &&
+        formData.witnesses.trim() &&
+        formData.description.trim().length >= 20
+    );
+
     if (submittedId) {
         return (
             <div className="min-h-screen flex items-center justify-center px-4 bg-[#0A1116] w-full">
@@ -542,8 +552,9 @@ function ComplaintContent() {
                                 type="submit"
                                 variant="gradient"
                                 size="lg"
-                                className="w-full shadow-2xl shadow-teal-500/20 py-6 text-lg"
+                                className="w-full shadow-2xl shadow-teal-500/20 py-6 text-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-teal-600"
                                 isLoading={isSubmitting}
+                                disabled={!isFormValid || isSubmitting}
                             >
                                 Submit Secure Complaint
                             </Button>
