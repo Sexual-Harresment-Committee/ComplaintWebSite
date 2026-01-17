@@ -20,7 +20,9 @@ import {
     CheckCircle2,
     Lock,
     ArrowLeft,
-    KeyRound
+    KeyRound,
+    X,
+    Trash2
 } from "lucide-react";
 import { generateComplaintId, hashPasscode } from "@/lib/utils";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
@@ -115,12 +117,25 @@ function ComplaintContent() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleFileSelect = (files: FileList | null) => {
+    const handleFilesAdded = (files: FileList | null) => {
         if (files) {
-            setSelectedFiles(Array.from(files));
-        } else {
-            setSelectedFiles([]);
+            const newFiles = Array.from(files);
+            setSelectedFiles(prev => {
+                const combined = [...prev, ...newFiles];
+                // Filter duplicates based on name and size
+                const unique = combined.filter((file, index, self) => 
+                    index === self.findIndex((t) => (
+                        t.name === file.name && t.size === file.size
+                    ))
+                );
+                return unique;
+            });
+            toast.success(`${newFiles.length} file(s) added.`);
         }
+    };
+
+    const removeFile = (index: number) => {
+        setSelectedFiles(prev => prev.filter((_, i) => i !== index));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -610,8 +625,44 @@ function ComplaintContent() {
                             <FileUpload
                                 label="Upload Evidence (Image / Video / Audio) - Max 10MB Total"
                                 multiple={true}
-                                onFilesSelected={handleFileSelect}
+                                onFilesSelected={handleFilesAdded}
                             />
+
+                            {/* File List */}
+                            {selectedFiles.length > 0 && (
+                                <div className="space-y-3 animate-fade-in-up">
+                                     <div className="flex justify-between items-center px-1">
+                                        <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">Selected Files ({selectedFiles.length})</span>
+                                        <span className={`text-xs font-mono font-medium ${selectedFiles.reduce((acc, f) => acc + f.size, 0) > 10 * 1024 * 1024 ? "text-red-400" : "text-brand-teal"}`}>
+                                            {(selectedFiles.reduce((acc, f) => acc + f.size, 0) / (1024 * 1024)).toFixed(2)} MB / 10 MB
+                                        </span>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-1 gap-2">
+                                        {selectedFiles.map((file, index) => (
+                                            <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-all group">
+                                                <div className="flex items-center gap-3 overflow-hidden">
+                                                    <div className="w-10 h-10 rounded-md bg-black/40 flex items-center justify-center shrink-0 border border-white/5">
+                                                        <FileText size={18} className="text-teal-500/70" />
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-sm text-gray-200 truncate font-medium">{file.name}</p>
+                                                        <p className="text-xs text-gray-500">{(file.size / 1024).toFixed(1)} KB</p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeFile(index)}
+                                                    className="p-2 rounded-full hover:bg-red-500/20 text-gray-500 hover:text-red-400 transition-colors opacity-60 group-hover:opacity-100"
+                                                    title="Remove file"
+                                                >
+                                                    <X size={16} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* SUBMISSION FOOTER */}
