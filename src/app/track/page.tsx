@@ -95,60 +95,69 @@ export default function TrackComplaint() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-neutral-50 dark:bg-neutral-950 px-4">
-      <div className="mb-8">
-            <Link href="/" className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
-              &larr; Back to Home
-            </Link>
-      </div>
-      <Card className="w-full max-w-md shadow-sm">
-        <CardHeader>
-          <div className="flex items-center space-x-2 mb-2">
-            <div className="bg-emerald-100 dark:bg-emerald-900/30 p-2 rounded-lg">
-                <Lock className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0A1116] px-4 relative overflow-hidden">
+      {/* Ambient Background Effects */}
+       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-teal-500/10 rounded-full blur-[120px]" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px]" />
+       </div>
+
+      <div className="relative z-10 w-full max-w-md space-y-8">
+        <div className="mb-8 text-center">
+              <Link href="/" className="text-sm text-gray-500 hover:text-teal-400 transition-colors">
+                &larr; Back to Home
+              </Link>
+        </div>
+        
+        <Card className="w-full bg-black/40 border-white/10 shadow-2xl backdrop-blur-md">
+          <CardHeader className="space-y-1">
+            <div className="flex items-center justify-center mb-4">
+              <div className="bg-gradient-to-br from-teal-500/20 to-blue-600/20 p-3 rounded-xl border border-white/5 shadow-[0_0_15px_rgba(42,157,143,0.3)]">
+                  <Lock className="w-8 h-8 text-teal-400" />
+              </div>
             </div>
-            <CardTitle>Track Complaint</CardTitle>
-          </div>
-          <CardDescription>
-            Enter your Complaint ID and Passcode (if set) to view status updates.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="complaintId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Complaint ID</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. CMP-X82L9N" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="passcode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Passcode (Optional)</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="••••" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full" disabled={isValidating}>
-                {isValidating ? <Loader2 className="animate-spin" /> : "View Status"}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+            <CardTitle className="text-2xl text-center text-white">Track Complaint</CardTitle>
+            <CardDescription className="text-center text-gray-400">
+              Enter your Complaint ID and Passcode (if set) to view status updates.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="complaintId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-300">Complaint ID</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. CMP-X82L9N" {...field} className="bg-black/50 border-white/10 text-white placeholder:text-gray-600 focus:border-teal-500/50 focus:ring-teal-500/20" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="passcode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-300">Passcode (Optional)</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="••••" {...field} className="bg-black/50 border-white/10 text-white placeholder:text-gray-600 focus:border-teal-500/50 focus:ring-teal-500/20" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-500 text-white border-0 h-11" disabled={isValidating}>
+                  {isValidating ? <Loader2 className="animate-spin" /> : "View Status"}
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
